@@ -1,0 +1,95 @@
+stages:
+  - build
+  - deploy
+  - revert
+
+variables:
+  docker_html_path: "/www"
+  env: prod
+  deploy_subfolder: html
+
+
+install_dependencies:
+  image: node:14.15.0-stretch
+  stage: build
+  script:
+    - yarn install
+    - yarn build
+    - mv build build_$env
+  artifacts:
+    paths:
+      - node_modules
+      - build_$env
+  cache:
+    key:
+      files:
+        - yarn.lock
+    paths:
+      - node_modules
+  variables:
+    env: prod
+    REACT_APP_WEBSITE_PREFIX: ""
+
+
+build_staging:
+  extends: install_dependencies
+  variables:
+    env: staging
+    REACT_APP_WEBSITE_PREFIX: "[branch=$CI_COMMIT_BRANCH]"
+#    PUBLIC_URL: "/$CI_COMMIT_BRANCH"
+
+deploy_staging:
+  extends: deploy_prod
+  variables:
+#    deploy_subfolder: staging/$CI_COMMIT_BRANCH
+    deploy_subfolder: staging
+    env: staging
+  when: always
+  only:
+    - main
+#    - /feature-.*/
+
+deploy_prod:
+  stage: deploy
+  script:
+    - mkdir -p $docker_html_path/$deploy_subfolder
+    - mkdir -p $docker_html_path/test-app/${env}_$CI_COMMIT_SHA/prev-version
+    - cp -r build_$env $docker_html_path/test-app/${env}_$CI_COMMIT_SHA
+    - cp -Pvr $docker_html_path/$deploy_subfolder $docker_html_path/test-app/${env}_$CI_COMMIT_SHA/prev-version || true
+    - echo "======= Remove old CI_COMMIT_SHA ======="
+    - 'ls -dtr $docker_html_path/test-app/${env}_*/ | head -n -6 | xargs -r rm -rf --'
+  only:
+    - main
+
+activate_staging:
+  extends: activate_prod
+  variables:
+#    deploy_subfolder: staging/$CI_COMMIT_BRANCH
+    deploy_subfolder: staging
+    env: staging
+  when: always
+  only:
+    - main
+#    - /feature-.*/
+
+activate_prod:
+  stage: deploy
+  script:
+    - ln -fsnv /var/www/test-app/${env}_$CI_COMMIT_SHA/build_$env $docker_html_path/$deploy_subfolder
+  when: manual
+  only:
+    - main
+
+
+revert_step_1:
+  stage: revert
+  when: manual
+  script:
+    - cp -Pvr --remove-destination $docker_html_path/test-app/${env}_$CI_COMMIT_SHA/prev-version/$deploy_subfolder/build_$env $docker_html_path/html
+
+revert_step_2:
+  stage: revert
+  when: manual
+  script:
+    - cp -Pvr --remove-destination $docker_html_path/test-app/${env}_$CI_COMMIT_BEFORE_SHA/prev-version/$deploy_subfolder/build_$env $docker_html_path/html
+
