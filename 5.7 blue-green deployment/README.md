@@ -13,7 +13,7 @@
 2. Реализуйте деплой статичного сайта с помощью методики blue-green.
 - https://gitlab.com/welcomenews/skillbox-5.3.git
 
-### Нужно установить docker, gitlab-runner
+# Нужно установить docker, gitlab-runner
 
-### В файлк /etc/gitlab-runner/config.toml прописать
+# В файлк /etc/gitlab-runner/config.toml прописать
 volumes = ["/cache", "/var/www/:/www:rw"]
