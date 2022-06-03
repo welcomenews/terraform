@@ -1,0 +1,43 @@
+stages:
+  - deploy
+  - revert
+
+variables:
+  docker_html_path: "/www"
+  env: prod
+  deploy_subfolder: html-5
+  index: "index.html"
+
+deploy_prod:
+  stage: deploy
+  script:
+    - mkdir -p $docker_html_path/$deploy_subfolder
+    - mkdir -p $docker_html_path/test-app/${env}_$CI_COMMIT_SHA/prev-version
+    - cp -r $index $docker_html_path/test-app/${env}_$CI_COMMIT_SHA
+    - cp -Pvr $docker_html_path/$deploy_subfolder $docker_html_path/test-app/${env}_$CI_COMMIT_SHA/prev-version || true
+    - echo "======= Remove old CI_COMMIT_SHA ======="
+    - 'ls -dtr $docker_html_path/test-app/${env}_*/ | head -n -4 | xargs -r rm -rf --'
+  when: always
+  only:
+    - main
+
+activate_prod:
+  stage: deploy
+  script:
+    - ln -fsnv /var/www/test-app/${env}_$CI_COMMIT_SHA/$index $docker_html_path/$deploy_subfolder
+  when: always
+  only:
+    - main
+
+# Revert
+revert_step_1:
+  stage: revert
+  when: manual
+  script:
+    - cp -Pvr --remove-destination $docker_html_path/test-app/${env}_$CI_COMMIT_SHA/prev-version/$deploy_subfolder/$index $docker_html_path/$deploy_subfolder/$index
+
+revert_step_2:
+  stage: revert
+  when: manual
+  script:
+    - cp -Pvr --remove-destination $docker_html_path/test-app/${env}_$CI_COMMIT_BEFORE_SHA/prev-version/$deploy_subfolder/$index $docker_html_path/$deploy_subfolder/$index
