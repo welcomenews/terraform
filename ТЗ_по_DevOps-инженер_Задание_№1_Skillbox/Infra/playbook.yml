@@ -1,0 +1,10 @@
+---
+- name: Install programs
+  hosts: host1
+  become: yes
+  remote_user: root
+  # become_user: root
+  gather_facts: yes
+
+  roles:
+    - Docker
