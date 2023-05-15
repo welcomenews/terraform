@@ -25,3 +25,8 @@ sudo apt-get update
 sudo apt-get install atom
 ```
 
+#### Linter for Terraform
+
+```
+TFLint
+```
