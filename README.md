@@ -29,4 +29,21 @@ sudo apt-get install atom
 
 ```
 TFLint
+https://github.com/terraform-linters/tflint
 ```
+#### Satatic analizator
+
+```
+Chekov
+https://github.com/bridgecrewio/checkov
+```
+#### Terraform docs  Автоматическая генерация документации
+```
+https://terraform-docs.io/
+```
+#### Интеграционные тесты 
+```
+TFTets
+```
+
+
