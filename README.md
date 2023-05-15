@@ -45,5 +45,9 @@ https://terraform-docs.io/
 ```
 TFTets
 ```
+#### Деплоим Yandex Cloud с помощью Terraform и GitLab
+```
+https://cloud.yandex.ru/events/779?utm_source=mailing&utm_medium=email&utm_campaign=digest_march_ru_12_04_23&utm_content=B
+```
 
 
